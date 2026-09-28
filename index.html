@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Instagramハイライトアイコンセット｜揃った丸アイコンを一括で作る</title>
+<meta name="description" content="アクセントカラーを1色選び、使いたいカテゴリにチェックを入れると、統一デザインの丸アイコンがその場でプレビューされ、PNGで保存できます。Instagramのハイライトカバーをまとめて統一するための無料ツールです。ログイン不要、選んだ色やカテゴリはブラウザ内だけで処理され、サーバーには送信されません。">
+<style>
+  :root {
+    --bg: #F3F1EE;
+    --ink: #262220;
+    --muted: #746B65;
+    --line: #DCD5CE;
+    --card: #FFFFFF;
+    --accent: #C1272D;
+    --accent-ink: #FFFFFF;
+    --danger: #B3261E;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: "Hiragino Sans", "Yu Gothic", "BIZ UDPGothic", "Noto Sans JP", system-ui, sans-serif; line-height: 1.6; }
+  body { padding: 0 16px; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 0 40px; }
+  h1 { font-size: 20px; line-height: 1.4; margin: 0 0 6px; }
+  .lead { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 0 0 16px; }
+  h2 { font-size: 15px; margin: 0 0 10px; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
+  .swatch { width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; padding: 0; cursor: pointer;
+    position: relative; }
+  .swatch[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px #FFF inset; }
+  .swatch-label { display: block; font-size: 10px; color: var(--muted); text-align: center; margin-top: 4px; line-height: 1.3; }
+  .swatchwrap { display: flex; flex-direction: column; align-items: center; width: 82px; }
+
+  .field { margin-bottom: 0; }
+  .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .field .hint { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .field input[type="color"] { width: 52px; height: 40px; padding: 2px; border: 1px solid var(--line); border-radius: 6px;
+    background: #FFF; cursor: pointer; }
+
+  .catlist { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .catitem { display: flex; align-items: center; gap: 8px; font-size: 14px; min-height: 28px; }
+  .catitem input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 auto; }
+  .catitem label { cursor: pointer; }
+
+  .icongrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 14px; }
+  @media (min-width: 480px) { .icongrid { grid-template-columns: repeat(3, 1fr); } }
+  .iconcell { display: flex; flex-direction: column; align-items: center; background: #F7F5F2; border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px; }
+  .iconcanvas { width: 100%; max-width: 160px; aspect-ratio: 1 / 1; display: block; }
+  .iconlabel { font-size: 12px; color: var(--ink); text-align: center; margin: 8px 0 8px; line-height: 1.35; }
+  .emptyMsg { color: var(--muted); font-size: 13px; margin: 0; padding: 12px 0; }
+
+  .btn { font: inherit; font-size: 15px; font-weight: 700; padding: 12px 16px; border-radius: 6px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink); cursor: pointer; min-height: 48px; width: 100%; }
+  .btn.secondary { background: #FFF; color: var(--ink); border-color: var(--line); }
+  .btn.small { font-size: 13px; padding: 9px 10px; min-height: 42px; width: 100%; }
+  .btnrow { display: flex; flex-direction: column; gap: 10px; }
+  .msg { min-height: 1.4em; font-size: 13px; margin: 10px 0 0; color: var(--muted); }
+  .msg.error { color: var(--danger); font-weight: 700; }
+
+  .mw-footer { box-sizing: border-box; width: 100%; max-width: 100%; margin: 24px 0 0; padding: 16px; background: #F7F7F8;
+    border: 1px solid #D8D8DC; border-radius: 6px; color: #3A3A3E; font-family: system-ui, sans-serif; font-size: 12px; line-height: 1.7; }
+  .mw-footer p { margin: 0 0 6px; }
+  .mw-footer p:last-child { margin-bottom: 0; }
+  .mw-footer a { color: #0B5AA6; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Instagramハイライトアイコンセット</h1>
+  <p class="lead">アクセントカラーを1色選び、使いたいカテゴリにチェックを入れると、同じ配色・同じ線の太さで揃った丸アイコンがその場でプレビューされます。PNGで保存して、そのままInstagramのハイライトカバーに設定できます。ログイン不要、選んだ色やカテゴリはブラウザ内だけで処理され、サーバーには送信されません。</p>
+
+  <div class="panel">
+    <h2>アクセントカラー</h2>
+    <div class="swatches" id="swatches"></div>
+    <div class="field">
+      <label for="customColor">カラーピッカーで自由に指定<span class="hint">任意</span></label>
+      <input type="color" id="customColor" value="#E0524F">
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>カテゴリを選ぶ<span class="hint">1つ以上</span></h2>
+    <div class="catlist" id="catlist"></div>
+  </div>
+
+  <div class="panel">
+    <h2>プレビュー</h2>
+    <div class="icongrid" id="iconGrid"></div>
+    <div class="btnrow">
+      <button type="button" class="btn" id="bulkBtn">表示中をまとめてダウンロード</button>
+    </div>
+    <p class="msg" id="bulkMsg" role="status" aria-live="polite"></p>
+  </div>
+
+  <footer class="mw-footer">
+    <p>みちAIワークス（MICHI AI WORKS）／代表 田中　泉</p>
+    <p>運営: <a href="https://michi-portfolio.vercel.app/" rel="noopener">みちAIワークス 公式サイト</a>（https://michi-portfolio.vercel.app/ ）／ お問い合わせ: <a href="mailto:nncf123nncf@gmail.com">nncf123nncf@gmail.com</a></p>
+    <p>選んだアクセントカラー・カテゴリの選択はすべてブラウザ内だけで処理され、サーバーには送信されません。アイコン画像の生成・保存も端末内だけで行われ、外部へは送信されません。アクセス解析（Cloudflare Web Analytics）でページの閲覧数を計測していますが、入力した内容は送信しません。</p>
+    <p>ログイン・会員登録・パスワードの入力を求めることはありません。</p>
+  </footer>
+</main>
+
+<!-- Cloudflare Web Analytics（ページの閲覧に関する計測。入力内容は送信しません） -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon='{"token": "b4c9f7e78daf4edb84ef52b88633f649"}'></script>
+<!-- End Cloudflare Web Analytics -->
+
+<script>
+(function () {
+  'use strict';
+
+  var CATEGORIES = [
+    { key: 'menu',     label: 'メニュー・料金' },
+    { key: 'reserve',  label: '予約' },
+    { key: 'access',   label: 'アクセス' },
+    { key: 'hours',    label: '営業時間' },
+    { key: 'review',   label: '口コミ・レビュー' },
+    { key: 'gallery',  label: 'ギャラリー' },
+    { key: 'profile',  label: 'プロフィール' },
+    { key: 'campaign', label: 'キャンペーン' },
+    { key: 'faq',      label: 'よくある質問' }
+  ];
+
+  var PRESETS = [
+    { hex: '#E0524F', name: 'コーラルレッド' },
+    { hex: '#F0A93D', name: 'マリーゴールド' },
+    { hex: '#6E85C7', name: 'ペリウィンクル' },
+    { hex: '#9A7BC4', name: 'ライラック' },
+    { hex: '#8C8C8C', name: 'シルバーグレー' },
+    { hex: '#A99C8C', name: 'サンドベージュ' }
+  ];
+
+  var PREVIEW_SIZE = 360;
+  var DOWNLOAD_SIZE = 1080;
+
+  var state = {
+    accent: PRESETS[0].hex,
+    selected: new Set(CATEGORIES.map(function (c) { return c.key; }))
+  };
+
+  // ---- 色ユーティリティ ----
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(function (ch) { return ch + ch; }).join('');
+    }
+    var n = parseInt(hex, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(function (v) {
+      v = Math.max(0, Math.min(255, Math.round(v)));
+      return v.toString(16).padStart(2, '0');
+    }).join('');
+  }
+  function lighten(hex, amt) {
+    var rgb = hexToRgb(hex);
+    return rgbToHex(
+      rgb[0] + (255 - rgb[0]) * amt,
+      rgb[1] + (255 - rgb[1]) * amt,
+      rgb[2] + (255 - rgb[2]) * amt
+    );
+  }
+  function darken(hex, amt) {
+    var rgb = hexToRgb(hex);
+    return rgbToHex(rgb[0] * (1 - amt), rgb[1] * (1 - amt), rgb[2] * (1 - amt));
+  }
+  // 相対輝度（WCAG方式）。白に近い色をカラーピッカーで選んだときに、
+  // 白いグラデーション・白い線画が「白地に白」で見えなくなるのを避けるために使う。
+  function relLuminance(hex) {
+    var rgb = hexToRgb(hex).map(function (v) { return v / 255; });
+    var lin = rgb.map(function (v) {
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+  }
+
+  // ---- 図形ヘルパー ----
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function starPath(ctx, cx, cy, outerR, innerR, points) {
+    ctx.beginPath();
+    var step = Math.PI / points;
+    var rot = -Math.PI / 2;
+    ctx.moveTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+    for (var i = 0; i < points; i++) {
+      rot += step;
+      ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+      rot += step;
+      ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+    }
+    ctx.closePath();
+  }
+
+  // ---- カテゴリごとの線画（原点中心・単位uのローカル座標） ----
+  function drawSymbol(ctx, key, u) {
+    switch (key) {
+      case 'menu': {
+        var xs = -0.72 * u, xe = 0.72 * u;
+        [-0.5, 0, 0.5].forEach(function (m, i) {
+          ctx.beginPath();
+          ctx.moveTo(xs, m * u);
+          ctx.lineTo(i === 2 ? 0.22 * u : xe, m * u);
+          ctx.stroke();
+        });
+        break;
+      }
+      case 'reserve': {
+        var rx = 0.6 * u, top = -0.5 * u, h = 1.1 * u, rad = 0.12 * u;
+        roundRectPath(ctx, -rx, top, rx * 2, h, rad);
+        ctx.stroke();
+        [-0.3, 0.3].forEach(function (tx) {
+          ctx.beginPath();
+          ctx.moveTo(tx * u, top - 0.22 * u);
+          ctx.lineTo(tx * u, top + 0.06 * u);
+          ctx.stroke();
+        });
+        ctx.beginPath();
+        ctx.moveTo(-rx, top + 0.38 * u);
+        ctx.lineTo(rx, top + 0.38 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-0.26 * u, 0.18 * u);
+        ctx.lineTo(-0.04 * u, 0.4 * u);
+        ctx.lineTo(0.36 * u, -0.14 * u);
+        ctx.stroke();
+        break;
+      }
+      case 'access': {
+        ctx.beginPath();
+        ctx.moveTo(-0.38 * u, -0.25 * u);
+        ctx.bezierCurveTo(-0.38 * u, -0.66 * u, 0.38 * u, -0.66 * u, 0.38 * u, -0.25 * u);
+        ctx.bezierCurveTo(0.38 * u, 0.06 * u, 0.06 * u, 0.36 * u, 0, 0.62 * u);
+        ctx.bezierCurveTo(-0.06 * u, 0.36 * u, -0.38 * u, 0.06 * u, -0.38 * u, -0.25 * u);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, -0.22 * u, 0.13 * u, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+      }
+      case 'hours': {
+        ctx.beginPath();
+        ctx.arc(0, 0, 0.58 * u, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0.24 * u, 0.13 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -0.38 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 0.055 * u, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+      case 'review': {
+        roundRectPath(ctx, -0.62 * u, -0.46 * u, 1.24 * u, 0.78 * u, 0.16 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-0.18 * u, 0.3 * u);
+        ctx.lineTo(-0.34 * u, 0.58 * u);
+        ctx.lineTo(0.02 * u, 0.3 * u);
+        ctx.closePath();
+        ctx.stroke();
+        starPath(ctx, 0.08 * u, -0.07 * u, 0.24 * u, 0.1 * u, 5);
+        ctx.stroke();
+        break;
+      }
+      case 'gallery': {
+        roundRectPath(ctx, -0.6 * u, -0.5 * u, 1.2 * u, 1.0 * u, 0.1 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(-0.3 * u, -0.22 * u, 0.11 * u, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-0.55 * u, 0.32 * u);
+        ctx.lineTo(-0.2 * u, -0.02 * u);
+        ctx.lineTo(0.04 * u, 0.2 * u);
+        ctx.lineTo(0.28 * u, -0.08 * u);
+        ctx.lineTo(0.55 * u, 0.32 * u);
+        ctx.stroke();
+        break;
+      }
+      case 'profile': {
+        ctx.beginPath();
+        ctx.arc(0, -0.24 * u, 0.24 * u, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0.62 * u, 0.55 * u, Math.PI, Math.PI * 2, false);
+        ctx.stroke();
+        break;
+      }
+      case 'campaign': {
+        ctx.beginPath();
+        ctx.moveTo(-0.55 * u, -0.28 * u);
+        ctx.lineTo(0.12 * u, -0.55 * u);
+        ctx.lineTo(0.58 * u, 0);
+        ctx.lineTo(0.12 * u, 0.55 * u);
+        ctx.lineTo(-0.55 * u, 0.28 * u);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0.24 * u, 0, 0.09 * u, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+      }
+      case 'faq': {
+        ctx.beginPath();
+        ctx.arc(0, -0.22 * u, 0.3 * u, Math.PI * 1.1, Math.PI * 2.15, false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0.16 * u, 0.02 * u);
+        ctx.lineTo(0.02 * u, 0.26 * u);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0.52 * u, 0.06 * u, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+    }
+  }
+
+  // ---- アイコン1枚を描画（ビー玉／ガラス玉風の質感＋中央に線画） ----
+  function drawIcon(canvas, key, hex) {
+    var s = canvas.width;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, s, s);
+
+    var cx = s / 2, cy = s / 2, r = s * 0.46;
+
+    // カラーピッカーで白に近い明るい色を選んだときに「白地に白いグラデーション＋白い線画」で
+    // 何も見えなくなるのを防ぐため、輝度に応じて中心の明るめ量とハイライトの濃さ、線画の色を調整する。
+    var lum = relLuminance(hex);
+    var isVeryLight = lum > 0.7;
+    var centerLightenAmt = isVeryLight ? 0.15 : 0.5;
+    var lineColor = isVeryLight ? '#33261E' : '#FFFFFF';
+
+    // 放射状グラデーション（中心を明るく・外周を濃く）
+    var grad = ctx.createRadialGradient(cx - r * 0.32, cy - r * 0.35, r * 0.08, cx, cy, r);
+    grad.addColorStop(0, lighten(hex, centerLightenAmt));
+    grad.addColorStop(0.55, hex);
+    grad.addColorStop(1, darken(hex, 0.3));
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // 半透明の白いハイライト（ガラス玉の光の反射）。背景が既に白に近い場合は薄くする
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.clip();
+    var hgx = cx - r * 0.3, hgy = cy - r * 0.36;
+    var hAlpha = isVeryLight ? 0.22 : 0.55;
+    var hAlphaMid = isVeryLight ? 0.08 : 0.16;
+    var hgrad = ctx.createRadialGradient(hgx, hgy, r * 0.02, hgx, hgy, r * 0.52);
+    hgrad.addColorStop(0, 'rgba(255,255,255,' + hAlpha + ')');
+    hgrad.addColorStop(0.5, 'rgba(255,255,255,' + hAlphaMid + ')');
+    hgrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.ellipse(hgx, hgy, r * 0.5, r * 0.32, -0.5, 0, Math.PI * 2);
+    ctx.fillStyle = hgrad;
+    ctx.fill();
+    ctx.restore();
+
+    // 中央のモノライン線画（通常は白。背景が白に近いほど明るい色のときは濃いインク色に切り替える）
+    var u = r * 0.46;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = lineColor;
+    ctx.fillStyle = lineColor;
+    ctx.lineWidth = s * 0.038;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    drawSymbol(ctx, key, u);
+    ctx.restore();
+  }
+
+  // ---- UI構築 ----
+  var swatchesEl = document.getElementById('swatches');
+  var customColorEl = document.getElementById('customColor');
+  var catlistEl = document.getElementById('catlist');
+  var iconGridEl = document.getElementById('iconGrid');
+  var bulkBtnEl = document.getElementById('bulkBtn');
+  var bulkMsgEl = document.getElementById('bulkMsg');
+
+  PRESETS.forEach(function (p) {
+    var wrap = document.createElement('div');
+    wrap.className = 'swatchwrap';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'swatch';
+    btn.style.background = p.hex;
+    btn.setAttribute('aria-pressed', String(p.hex.toLowerCase() === state.accent.toLowerCase()));
+    btn.setAttribute('aria-label', p.name);
+    btn.addEventListener('click', function () {
+      state.accent = p.hex;
+      customColorEl.value = p.hex;
+      syncSwatches();
+      renderGrid();
+    });
+    var label = document.createElement('span');
+    label.className = 'swatch-label';
+    label.textContent = p.name;
+    wrap.appendChild(btn);
+    wrap.appendChild(label);
+    swatchesEl.appendChild(wrap);
+  });
+
+  function syncSwatches() {
+    Array.prototype.forEach.call(swatchesEl.querySelectorAll('.swatch'), function (btn, i) {
+      btn.setAttribute('aria-pressed', String(PRESETS[i].hex.toLowerCase() === state.accent.toLowerCase()));
+    });
+  }
+
+  customColorEl.addEventListener('input', function () {
+    state.accent = customColorEl.value;
+    syncSwatches();
+    renderGrid();
+  });
+
+  CATEGORIES.forEach(function (cat) {
+    var item = document.createElement('div');
+    item.className = 'catitem';
+    var id = 'cat-' + cat.key;
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = id;
+    input.checked = true;
+    input.addEventListener('change', function () {
+      if (input.checked) {
+        state.selected.add(cat.key);
+      } else {
+        state.selected.delete(cat.key);
+      }
+      renderGrid();
+    });
+    var label = document.createElement('label');
+    label.setAttribute('for', id);
+    label.textContent = cat.label;
+    item.appendChild(input);
+    item.appendChild(label);
+    catlistEl.appendChild(item);
+  });
+
+  function activeCategories() {
+    return CATEGORIES.filter(function (c) { return state.selected.has(c.key); });
+  }
+
+  function renderGrid() {
+    iconGridEl.innerHTML = '';
+    var active = activeCategories();
+    if (active.length === 0) {
+      var empty = document.createElement('p');
+      empty.className = 'emptyMsg';
+      empty.textContent = 'カテゴリを1つ以上選んでください。';
+      iconGridEl.appendChild(empty);
+      return;
+    }
+    active.forEach(function (cat) {
+      var cell = document.createElement('div');
+      cell.className = 'iconcell';
+
+      var canvas = document.createElement('canvas');
+      canvas.width = PREVIEW_SIZE;
+      canvas.height = PREVIEW_SIZE;
+      canvas.className = 'iconcanvas';
+      drawIcon(canvas, cat.key, state.accent);
+
+      var label = document.createElement('p');
+      label.className = 'iconlabel';
+      label.textContent = cat.label;
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn small';
+      btn.textContent = 'PNG保存';
+      btn.addEventListener('click', function () { downloadIcon(cat, state.accent); });
+
+      cell.appendChild(canvas);
+      cell.appendChild(label);
+      cell.appendChild(btn);
+      iconGridEl.appendChild(cell);
+    });
+  }
+
+  function downloadIcon(cat, accentHex) {
+    var canvas = document.createElement('canvas');
+    canvas.width = DOWNLOAD_SIZE;
+    canvas.height = DOWNLOAD_SIZE;
+    drawIcon(canvas, cat.key, accentHex || state.accent);
+    var url = canvas.toDataURL('image/png');
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'highlight-' + cat.key + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  bulkBtnEl.addEventListener('click', function () {
+    var active = activeCategories();
+    if (active.length === 0) {
+      bulkMsgEl.textContent = 'カテゴリが選ばれていないため、保存できません。1つ以上選んでください。';
+      bulkMsgEl.classList.add('error');
+      return;
+    }
+    bulkMsgEl.classList.remove('error');
+    var accentAtClick = state.accent;
+    active.forEach(function (cat, i) {
+      setTimeout(function () { downloadIcon(cat, accentAtClick); }, i * 220);
+    });
+    bulkMsgEl.textContent = active.length + '枚のダウンロードを開始しました。ブラウザの複数ファイルダウンロード許可が必要な場合があります。';
+  });
+
+  renderGrid();
+})();
+</script>
+</body>
+</html>
