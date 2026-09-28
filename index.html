@@ -214,9 +214,12 @@
   }
 
   // ---- カテゴリごとの線画（原点中心・単位uのローカル座標） ----
-  function drawSymbol(ctx, key, u) {
+  // isCustom はキー文字列のプレフィックス一致ではなく、呼び出し元（drawIcon）が
+  // カテゴリオブジェクトの isCustom フラグから明示的に渡す。将来 CATEGORIES 側に
+  // 「custom」で始まるキーの固定カテゴリを追加しても誤判定しないようにするため。
+  function drawSymbol(ctx, key, u, isCustom) {
     // 自由入力カテゴリ（custom1〜3）は専用の記号を持たないため、汎用の星形で統一する
-    if (key.indexOf('custom') === 0) {
+    if (isCustom) {
       starPath(ctx, 0, 0, 0.56 * u, 0.24 * u, 5);
       ctx.stroke();
       return;
@@ -351,7 +354,7 @@
   }
 
   // ---- アイコン1枚を描画（ビー玉／ガラス玉風の質感＋中央に線画） ----
-  function drawIcon(canvas, key, hex) {
+  function drawIcon(canvas, key, hex, isCustom) {
     var s = canvas.width;
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, s, s);
@@ -402,7 +405,7 @@
     ctx.lineWidth = s * 0.038;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    drawSymbol(ctx, key, u);
+    drawSymbol(ctx, key, u, isCustom);
     ctx.restore();
   }
 
@@ -508,7 +511,7 @@
     state.customValues.forEach(function (v, i) {
       var trimmed = v.trim();
       if (trimmed.length > 0) {
-        custom.push({ key: 'custom' + (i + 1), label: trimmed, slot: i });
+        custom.push({ key: 'custom' + (i + 1), label: trimmed, slot: i, isCustom: true });
       }
     });
     return fixed.concat(custom);
@@ -532,7 +535,7 @@
       canvas.width = PREVIEW_SIZE;
       canvas.height = PREVIEW_SIZE;
       canvas.className = 'iconcanvas';
-      drawIcon(canvas, cat.key, state.accent);
+      drawIcon(canvas, cat.key, state.accent, !!cat.isCustom);
 
       var label = document.createElement('p');
       label.className = 'iconlabel';
@@ -555,7 +558,7 @@
     var canvas = document.createElement('canvas');
     canvas.width = DOWNLOAD_SIZE;
     canvas.height = DOWNLOAD_SIZE;
-    drawIcon(canvas, cat.key, accentHex || state.accent);
+    drawIcon(canvas, cat.key, accentHex || state.accent, !!cat.isCustom);
     var url = canvas.toDataURL('image/png');
     var a = document.createElement('a');
     a.href = url;
