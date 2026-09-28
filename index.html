@@ -44,6 +44,12 @@
   .catitem input[type="checkbox"] { width: 20px; height: 20px; flex: 0 0 auto; }
   .catitem label { cursor: pointer; }
 
+  .customcatlist { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .customcatitem label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .customcatitem input[type="text"] { width: 100%; font: inherit; font-size: 16px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 6px; background: #FFF; color: var(--ink); min-height: 44px; }
+  .customcatitem input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
   .icongrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 14px; }
   @media (min-width: 480px) { .icongrid { grid-template-columns: repeat(3, 1fr); } }
   .iconcell { display: flex; flex-direction: column; align-items: center; background: #F7F5F2; border: 1px solid var(--line);
@@ -84,6 +90,7 @@
   <div class="panel">
     <h2>カテゴリを選ぶ<span class="hint">1つ以上</span></h2>
     <div class="catlist" id="catlist"></div>
+    <div class="customcatlist" id="customCatList"></div>
   </div>
 
   <div class="panel">
@@ -135,10 +142,14 @@
 
   var PREVIEW_SIZE = 360;
   var DOWNLOAD_SIZE = 1080;
+  var CUSTOM_SLOT_COUNT = 3;
+  var CUSTOM_LABEL_MAXLENGTH = 12;
 
   var state = {
     accent: PRESETS[0].hex,
-    selected: new Set(CATEGORIES.map(function (c) { return c.key; }))
+    selected: new Set(CATEGORIES.map(function (c) { return c.key; })),
+    // 自由入力カテゴリ（最大3つ）。空欄のスロットは未選択として扱う
+    customValues: new Array(CUSTOM_SLOT_COUNT).fill('')
   };
 
   // ---- 色ユーティリティ ----
@@ -204,6 +215,12 @@
 
   // ---- カテゴリごとの線画（原点中心・単位uのローカル座標） ----
   function drawSymbol(ctx, key, u) {
+    // 自由入力カテゴリ（custom1〜3）は専用の記号を持たないため、汎用の星形で統一する
+    if (key.indexOf('custom') === 0) {
+      starPath(ctx, 0, 0, 0.56 * u, 0.24 * u, 5);
+      ctx.stroke();
+      return;
+    }
     switch (key) {
       case 'menu': {
         var xs = -0.72 * u, xe = 0.72 * u;
@@ -393,6 +410,7 @@
   var swatchesEl = document.getElementById('swatches');
   var customColorEl = document.getElementById('customColor');
   var catlistEl = document.getElementById('catlist');
+  var customCatListEl = document.getElementById('customCatList');
   var iconGridEl = document.getElementById('iconGrid');
   var bulkBtnEl = document.getElementById('bulkBtn');
   var bulkMsgEl = document.getElementById('bulkMsg');
@@ -456,8 +474,44 @@
     catlistEl.appendChild(item);
   });
 
+  // 固定9種を初期化した直後に、自由入力カテゴリ3枠を描画する
+  for (var slotIndex = 0; slotIndex < CUSTOM_SLOT_COUNT; slotIndex++) {
+    (function (i) {
+      var item = document.createElement('div');
+      item.className = 'customcatitem';
+      var id = 'customcat-' + i;
+      var label = document.createElement('label');
+      label.setAttribute('for', id);
+      label.textContent = '自由入力カテゴリ' + (i + 1);
+      var hint = document.createElement('span');
+      hint.className = 'hint';
+      hint.textContent = '任意・全角' + CUSTOM_LABEL_MAXLENGTH + '文字目安';
+      label.appendChild(hint);
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.id = id;
+      input.maxLength = CUSTOM_LABEL_MAXLENGTH;
+      input.placeholder = '例: 営業時間';
+      input.addEventListener('input', function () {
+        state.customValues[i] = input.value;
+        renderGrid();
+      });
+      item.appendChild(label);
+      item.appendChild(input);
+      customCatListEl.appendChild(item);
+    })(slotIndex);
+  }
+
   function activeCategories() {
-    return CATEGORIES.filter(function (c) { return state.selected.has(c.key); });
+    var fixed = CATEGORIES.filter(function (c) { return state.selected.has(c.key); });
+    var custom = [];
+    state.customValues.forEach(function (v, i) {
+      var trimmed = v.trim();
+      if (trimmed.length > 0) {
+        custom.push({ key: 'custom' + (i + 1), label: trimmed, slot: i });
+      }
+    });
+    return fixed.concat(custom);
   }
 
   function renderGrid() {
